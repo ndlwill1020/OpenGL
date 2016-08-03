@@ -1,0 +1,77 @@
+VBO全称是Vertext Buffer Object，是用来存储顶点数组数据的缓存对象。用于存储顶点坐标/顶点uv/顶点法线/顶点颜色.
+它直接在 GPU 中开辟一个缓存区域来存储顶点数据,使用顶点缓存能够大大减少了CPU-GPU 之间的数据拷贝开销，因此显著地提升了程序运行的效率.
+
+
+
+VBO的创建，分配100字节的空间，未初始化:
+GLuint vbo;
+glGenBuffers(1, &vbo);
+glBindBuffer(GL_ARRAY_BUFFER, vbo);
+glBufferData(GL_ARRAY_BUFFER,100,0,GL_STATIC_DRAW);
+
+
+－－－－－－－－－－－－－－－－－－－－－－－api
+void glGenBuffers (GLsizei n, GLuint* buffers);//创建顶点缓存对象
+参数 n ： 表示需要创建顶点缓存对象的个数；
+参数 buffers ：用于存储创建好的顶点缓存对象句柄；顶点缓存对象句柄始终是大于 0 的正整数
+
+//将顶点缓存对象设置为当前数组缓存对象(array buffer object)或当前元素缓存对象(element buffer object)
+void glBindBuffer (GLenum target, GLuint buffer);
+参数 target ：指定绑定的目标，取值为 GL_ARRAY_BUFFER（用于顶点数据） 或 GL_ELEMENT_ARRAY_BUFFER（用于索引数据）；
+参数 buffer ：顶点缓存对象句柄；
+
+//为顶点缓存对象申请内存空间，并进行初始化(视传入的参数而定)
+void glBufferData (GLenum target, GLsizeiptr size, const GLvoid* data, GLenum usage);
+参数 target：与 glBindBuffer 中的参数 target 相同；
+参数 size ：指定顶点缓存区的大小，以字节为单位计数；
+data ：用于初始化顶点缓存区的数据，可以为 NULL，表示只分配空间，之后再由 glBufferSubData 进行初始化；
+usage ：表示该缓存区域将会被如何使用，它的主要目的是用于提示OpenGL该对该缓存区域做何种程度的优化。其参数为以下三个之一：
+GL_STATIC_DRAW：表示该缓存区不会被修改；
+GL_DyNAMIC_DRAW：表示该缓存区会被周期性更改；
+GL_STREAM_DRAW：表示该缓存区会被频繁更改；
+如果顶点数据一经初始化就不会被修改，那么就应该尽量使用 GL_STATIC_DRAW，这样能获得更好的性能。
+
+//更新顶点缓冲区数据
+void glBufferSubData (GLenum target, GLintptr offset, GLsizeiptr size, const GLvoid* data);
+参数 ：offset 表示需要更新的数据的起始偏移量；
+参数 ：size 表示需要更新的数据的个数，也是以字节为计数单位；
+data ：用于更新的数据；
+
+//释放顶点缓存
+void glDeleteBuffers (GLsizei n, const GLuint* buffers);
+//参数与 glGenBuffers 类似
+－－－－－－－－－－－－－－－－－－－－－－－api end
+
+借助索引，我们可以重复使用一个顶点。这是用索引缓冲区（index buffer）来实现
+索引缓冲区存储的是整数；每个三角形有三个整数索引，用索引就可以在各种属性缓冲区（顶点坐标、颜色、UV坐标、其他UV坐标、法向缓冲区等）中找到顶点的信息
+
+std::vector<unsigned int> indices;
+// fill "indices" as needed
+
+// Generate a buffer for the indices
+ GLuint elementbuffer;
+ glGenBuffers(1, &elementbuffer);
+ glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+ glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), &indices[0], GL_STATIC_DRAW);
+
+
+ 绘制模型：
+// Index buffer
+ glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, elementbuffer);
+
+ // Draw the triangles !
+ glDrawElements(
+     GL_TRIANGLES,      // mode
+     indices.size(),    // count
+     GL_UNSIGNED_INT,   // type
+     (void*)0           // element array buffer offset
+ );
+ 最好使用unsigned short，不要用unsigned int。这样更节省空间，速度也更快
+
+
+GL_ELEMENT_ARRAY_BUFFER 表示的索引数据是由以下函数使用的：
+void glDrawElements (GLenum mode, GLsizei count, GLenum type, const GLvoid* indices);
+参数 mode ：表示描绘的图元类型，如：GL_TRIANGLES，GL_LINES，GL_POINTS；
+参数 count ： 表示索引数据的个数；
+参数 type ： 表示索引数据的格式，必须是无符号整形值；
+indices ：这个参数也是个多面手，如果没有使用 VBO，它指向 CPU 内存中的索引数据数组；如果使用 VBO 绑定到 GL_ELEMENT_ARRAY_BUFFER，那么它表示索引数据在 VBO 中的偏移量。

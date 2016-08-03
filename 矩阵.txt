@@ -1,0 +1,162 @@
+齐次坐标:Homogeneous coordinates
+三维顶点视为三元组(x, y, z)。现在引入一个新的分量w，得到向量(x, y, z, w)。
+若w==1，则向量(x, y, z, 1)为空间中的点。
+若w==0，则向量(x, y, z, 0)为方向。
+
+
+矩阵x顶点（矩阵左乘顶点，顶点用列向量表示）= 变换后的顶点
+
+
+//glm  三维数学库
+用C++，GLM表示：
+glm::mat4 myMatrix;
+glm::vec4 myVector;
+glm::vec4 transformedVector = myMatrix * myVector; 
+
+用GLSL表示：
+mat4 myMatrix;
+vec4 myVector;
+vec4 transformedVector = myMatrix * myVector; 
+
+
+-------------------------------------------平移矩阵:
+1 0 0 X
+0 1 0 Y
+0 0 1 Z
+0 0 0 1
+
+
+若想把向量(10, 10, 10, 1)沿X轴方向平移10个单位
+1 0 0 10      10
+0 1 0 0   *   10   = (20,10,10,1)
+0 0 1 0       10
+0 0 0 1       1
+
+
+用C++，GLM表示：
+
+#include <glm/transform.hpp> // after <glm/glm.hpp>
+
+glm::mat4 myMatrix = glm::translate(10,0,0);
+glm::vec4 myVector(10,10,10,0);
+glm::vec4 transformedVector = myMatrix * myVector; 
+用GLSL表示：实际中我们几乎不用GLSL做。大多数情况下在C++代码中用glm::translate()算出矩阵，然后把它传给GLSL。在GLSL中只做一次乘法：
+
+vec4 transformedVector = myMatrix * myVector;
+
+-------------------------------------------单位矩阵：
+单位矩阵＊(x,y,z,w) = (x,y,z,w)
+
+用C++表示：
+glm::mat4 myIdentityMatrix = glm::mat4(1.0);
+
+-------------------------------------------缩放矩阵:
+x 0 0 0 
+0 y 0 0 
+0 0 z 0
+0 0 0 1
+
+把一个向量（点或方向皆可）沿各方向放大2倍
+2 0 0 0
+0 2 0 0 * (x,y,z,w) = (2x,2y,2z,w) 
+0 0 2 0
+0 0 0 1
+
+用C++表示：
+//#include <glm/gtc/matrix_transform.hpp> and #include <glm/gtx/transform.hpp>
+glm::mat4 myScalingMatrix = glm::scale(2,2,2);
+
+-------------------------------------------旋转矩阵:
+用C++表示：
+// Use #include <glm/gtc/matrix_transform.hpp> and #include <glm/gtx/transform.hpp>
+glm::vec3 myRotationAxis( ??, ??, ??);
+glm::rotate( angle_in_degrees, myRotationAxis );
+
+-------------------------------------------复合变换:
+TransformedVector = TranslationMatrix * RotationMatrix * ScaleMatrix * OriginalVector;
+这行代码最先执行缩放，接着旋转，最后才是平移。这就是矩阵乘法的工作方式
+
+用C++，GLM表示：
+glm::mat4 myModelMatrix = myTranslationMatrix * myRotationMatrix * myScaleMatrix;
+glm::vec4 myTransformedVector = myModelMatrix * myOriginalVector;
+用GLSL表示：
+mat4 transform = mat2 * mat1;
+vec4 out_vec = transform * in_vec;
+
+
+-------------------------------------------模型（Model）、视图（View）和投影（Projection）矩阵：
+模型矩阵:#####
+Model Coordinates-----Model Matrix------>World Coordintaes
+
+视图矩阵:#####
+起初，相机位于世界坐标系的原点
+你想把相机向右（X轴正方向）移动3个单位，这和把整个世界（包括网格）向左（X轴负方向）移3个单位是等效的
+
+// Use #include <glm/gtc/matrix_transform.hpp> and #include <glm/gtx/transform.hpp>
+glm::mat4 ViewMatrix = glm::translate(-3,0,0);
+
+从世界坐标系（顶点都相对于世界坐标系中心定义）到观察坐标系（Camera Space，顶点都相对于相机定义）的变换。
+GLM伟大的glm::LookAt函数吧：
+glm::mat4 CameraMatrix = glm::LookAt(
+    cameraPosition, // the position of your camera, in world space
+    cameraTarget,   // where you want to look at, in world space
+    upVector        // probably glm::vec3(0,1,0), but (0,-1,0) would make you looking upside-down, which can be great too
+);
+Model Coordinates-----Model Matrix------>World Coordintaes-----View Matrix------>Camera Coordinates
+
+投影矩阵:#####
+两个x、y坐标相同的顶点，z值较大的一个将会最终显示在屏幕上
+透视投影（perspective projection）:
+glm::mat4 projectionMatrix = glm::perspective(
+    FoV,         // The horizontal Field of View, in degrees : the amount of "zoom". Think "camera lens". Usually between 90° (extra wide) and 30° (quite zoomed in)
+    4.0f / 3.0f, // Aspect Ratio. Depends on the size of your window. Notice that 4/3 == 800/600 == 1280/960, sounds familiar ?
+    0.1f,        // Near clipping plane. Keep as big as possible, or you'll get precision issues.
+    100.0f       // Far clipping plane. Keep as little as possible.
+);
+从观察坐标系（顶点都相对于相机定义）到齐次坐标系（Homogeneous Space）（顶点都在一个小立方体中定义。立方体内的物体都会在屏幕上显示）的变换。
+Model Coordinates-----Model Matrix------>World Coordintaes-----View Matrix------>Camera Coordinates-----Projection Matrix------>Hommogeneous Coordinates
+相机的视域四棱锥（frustum）：这是相机实际能看见的区域
+
+用投影矩阵去乘前面的结果,视域四棱锥变成了一个正方体（每条棱的范围都是-1到1),还需要做一次数学变换使之适合实际的窗口大小,这就是实际渲染的图像啦
+
+复合变换：模型视图投影矩阵（MVP）
+// C++ : compute the matrix
+glm::mat3 MVPmatrix = projection * view * model; // Remember : inverted !
+// GLSL : apply it
+transformed_vertex = MVP * in_vertex;
+
+
+
+-----------------------------------------------------------总结:
+第一步：创建模型视图投影（MVP）矩阵。任何要渲染的模型都要做这一步。
+// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit  100 units
+glm::mat4 Projection = glm::perspective(45.0f, 4.0f / 3.0f, 0.1f, 100.0f);
+// Camera matrix
+glm::mat4 View       = glm::lookAt(
+    glm::vec3(4,3,3), // Camera is at (4,3,3), in World Space
+    glm::vec3(0,0,0), // and looks at the origin
+    glm::vec3(0,1,0)  // Head is up (set to 0,-1,0 to look upside-down)
+);
+// Model matrix : an identity matrix (model will be at the origin)
+glm::mat4 Model      = glm::mat4(1.0f);  // Changes for each model !
+// Our ModelViewProjection : multiplication of our 3 matrices
+glm::mat4 MVP        = Projection * View * Model; // Remember, matrix multiplication is the other way around
+
+第二步：把MVP传给GLSL
+// Get a handle for our "MVP" uniform.
+// Only at initialisation time.
+GLuint MatrixID = glGetUniformLocation(programID, "MVP");
+
+// Send our transformation to the currently bound shader,
+// in the "MVP" uniform
+// For each model you render, since the MVP will be different (at least the M part)
+glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
+第三步：在GLSL中用MVP变换顶点
+in vec3 vertexPosition_modelspace;
+uniform mat4 MVP;
+void main(){
+    // Output position of the vertex, in clip space : MVP * position
+    vec4 v = vec4(vertexPosition_modelspace,1); // Transform an homogeneous 4D vector, remember ?
+    gl_Position = MVP * v;
+}

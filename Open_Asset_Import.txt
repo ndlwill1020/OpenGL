@@ -1,0 +1,7 @@
+OpenGL使用Open Asset Import库加载模型，简称Assimp
+
+3d建模软件:Blender,Maya.3ds Max
+模型的内容可以被导入到顶点缓冲区和索引缓冲区等中去，然后被渲染出来
+
+
+－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－加载Mesh数据：

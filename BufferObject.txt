@@ -1,0 +1,2 @@
+Buffer Object也是一种OpenGL Object
+它是指由OpenGl分配的内存区域，用来存储顶点数据、从图像或者帧缓存（framebuffer）取得的像素数据以及其他数据

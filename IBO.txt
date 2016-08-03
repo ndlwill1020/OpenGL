@@ -1,0 +1,7 @@
+IBO为索引缓冲区，里面的值可以是unsigned int或者unsigned short
+
+IBO的创建，分配100字节的空间，未初始化:
+GLuint ibo;
+glGenBuffers(1, &ibo);
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+glBufferData(GL_ELEMENT_ARRAY_BUFFER,100,0,GL_STATIC_DRAW);

@@ -1,0 +1,7 @@
+用OpenGL 3的语法
+#version 330 core
+
+//“layout(location = 0)”指我们用来赋给vertexPosition_modelspace这个属性的缓冲区
+layout(location = 0) in vec3 vertexPosition_modelspace;
+
+通过将glvertexAttribPointer函数的第一个参数值赋给layout，我们就完成了这一点。参数值“0”并不重要，它可以是12（但是不大于glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &v)）；重要的是两边参数值保持一致.“in”的意思是这是一些输入数据

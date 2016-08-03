@@ -1,0 +1,6 @@
+"远"三角形遮住了“近”三角形！它本应该画在“近”三角形后面的！我们的立方体就有这个问题：一些理应被遮挡的面，因为绘制时间晚。我们将用深度缓存（Z-Buffer）算法解决它。
+
+// Enable depth test
+glEnable(GL_DEPTH_TEST);
+// Accept fragment if it closer to the camera than the former one
+glDepthFunc(GL_LESS);

@@ -1,0 +1,30 @@
+在openGL中glVertexAttribPointer使用来上传顶点数据到显卡
+
+//使用顶点数组进行渲染用到的函数
+//这里的顶点数据是数组的形式
+void glVertexAttribPointer(GLuint index,   
+                           GLint size,  
+                           GLenum type,  
+                           GLboolean normalized,  
+                           GLsizei stride,  
+                           const void *ptr)  
+   
+// index: 着色器脚本对应变量ID  
+// size : 此类型数据的个数   比如顶点由 x, y, z 3个组成部分，纹理由 u, v 2个组成部分
+// type : 此类型的sizeof值  
+// normalized : 是否对非float类型数据转化到float时候进行归一化处理  
+// stride ： 表示上一个数据到下一个数据之间的间隔（同样是以字节为单位），OpenGL 根据该间隔来从由多个顶点数据混合而成的数据块中跳跃地读取相应的顶点数据；  
+// ptr :值得注意，这个参数是个多面手。如果没有使用 VBO，它指向 CPU 内存中的顶点数据数组；如果使用 VBO 绑定到 GL_ARRAY_BUFFER，那么它表示该种类型顶点数据在顶点缓存中的起始偏移量
+
+在不使用VBO的情况下：事情是这样的，ptr就是一个指针，指向的是需要上传到顶点数据指针。通常是数组名的偏移量。
+在使用VBO的情况下：首先要glBindBuffer，以后ptr指向的就不是具体的数据了。因为数据已经缓存在缓冲区了。这里的ptr指向的是缓冲区数据的偏移量。这里的偏移量是整型，但是需要强制转换为const GLvoid *类型传入。注意的是，这里的偏移的意思是数据个数总宽度数值。
+
+比如说：这里存放的数据前面有3个float类型数据，那么这里的偏移就是，3*sizeof(float)
+
+最后解释一下，glVertexAttribPointer的工作原理：
+
+首先，通过index得到着色器对应的变量openGL会把数据复制给着色器的变量。
+以后，通过size和type知道当前数据什么类型，有几个。openGL会映射到float，vec2, vec3 等等。
+由于每次上传的顶点数据不止一个，可能是一次4，5，6顶点数据。那么通过stride就是在数组中间隔多少byte字节拿到下个顶点此类型数据。
+最后，通过ptr的指针在迭代中获得所有数据。
+那么，最最后openGL如何知道ptr指向的数组有多长，读取几次呢。是的，openGL不知道。所以在调用绘制的时候，需要传入一个count数值，就是告诉openGL绘制的时候迭代几次glVertexAttribPointer调用。

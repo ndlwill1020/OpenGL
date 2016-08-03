@@ -1,0 +1,114 @@
+顶点数组对象(VAO)  Vertext Array Object,是一个OpenGL Obejct
+
+VAO存储了顶点数据的格式，以及可以提供顶点数据数组的缓存对象VBO
+VAO并不存储顶点数据，只是记录了顶点相关的状态（譬如顶点位置的格式以及顶点位置的数据、纹理坐标的格式以及纹理坐标的数据）
+
+作为一个OpenGL Object，VAO也同样有着对应的创建（glGenVertexArrays）、销毁（glDeleteVertexArrays）、以及绑定（glBindVertexArray）函数
+另外一个新创建的VAO默认对于所有属性数组的访问都是disable的，如果要启用需要调用glEnableVertexArribArray，相反则是glDisableVertexAttribArray
+
+VAO可以想象为连接顶点属性数组以及VBO中的顶点数据的桥梁
+
+
+
+创建一个顶点数组对象，并将它设为当前对象:
+VAO的创建:
+GLuint VertexArrayID;
+glGenVertexArrays(1, &VertexArrayID);
+glBindVertexArray(VertexArrayID);
+OpenGL上下文创建后，马上做这一步工作；必须在任何其他OpenGL调用前完成
+
+
+VAO就是一个状态容器
+初始化部分
+glGenVertexArrays(1,&m_nQuadVAO);
+glBindVertexArray(m_nQuadVAO);
+
+glGenBuffers(1,&m_nQuadPositionVBO);
+glBindBuffer(GL_ARRAY_BUFFER,m_nQuadPositionVBO);
+glBufferData(GL_ARRAY_BUFFER,sizeof(fQuadPos), fQuadPos,GL_STREAM_DRAW);
+glEnableVertexAttribArray(VAT_POSITION);
+glVertexAttribPointer(VAT_POSITION, 2, GL_INT,GL_FALSE, 0, NULL);
+
+glGenBuffers(1,&m_nQuadTexcoordVBO);
+glBindBuffer(GL_ARRAY_BUFFER,m_nQuadTexcoordVBO);
+glBufferData(GL_ARRAY_BUFFER,sizeof(fQuadTexcoord), fQuadTexcoord,GL_STREAM_DRAW);
+glEnableVertexAttribArray(VAT_TEXCOORD);
+glVertexAttribPointer(VAT_TEXCOORD, 2, GL_INT,GL_FALSE, 0, NULL);
+
+glGenBuffers(1,&m_nQuadIndexVBO);
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER,m_nQuadIndexVBO);
+glBufferData(GL_ELEMENT_ARRAY_BUFFER,sizeof(nQuadIndex), nQuadIndex,GL_STREAM_DRAW);
+
+//glBindVertexArray(NULL)的时候里面所有状态都”关掉“了
+glBindVertexArray(NULL);
+glBindBuffer(GL_ARRAY_BUFFER, NULL);
+glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, NULL);
+
+渲染部分
+glBindVertexArray(m_nQuadVAO);
+glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_SHORT,NULL);
+glBindVertexArray(NULL);
+----------------------------------------------------------
+// Create and compile our GLSL program   GLSL必须在运行时编译，这意味着每次启动程序，所有的着色器将重新编译
+GLuint programID = LoadShaders( "SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader" );
+// Get a handle for our buffers
+GLuint vertexPosition_modelspaceID = glGetAttribLocation(programID, "vertexPosition_modelspace");//获取program中attribute类型变量的位置(索引)
+
+//屏幕坐标系   屏幕的原点在中间，X在右方，Y在上方
+static const GLfloat g_vertex_buffer_data[] = { 
+	-1.0f, -1.0f, 0.0f,
+	 1.0f, -1.0f, 0.0f,
+	 0.0f,  1.0f, 0.0f,
+};
+
+//创建一个缓冲区vbo   创建、绑定、填充
+GLuint vertexbuffer;
+glGenBuffers(1, &vertexbuffer);
+glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);//可以用glBufferData重新分配空间
+
+
+do{
+	glClear( GL_COLOR_BUFFER_BIT );
+
+	// Use our shader
+	glUseProgram(programID);
+
+	//将缓冲区的数据复制进顶点属性中----------
+
+	//激活顶点属性
+	glEnableVertexAttribArray(vertexPosition_modelspaceID);//也可以写0   对应shader的layout(location = 0) in vec3 vertexPosition_modelspace;中的0
+
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);//绑定到GL_ARRAY_BUFFER的类型不会影响到VAO的状态
+	//glVertexAttribPointer才会真正影响到VAO的状态,把顶点属性索引index和缓存buffer联系起来
+	glVertexAttribPointer(
+		vertexPosition_modelspaceID, // The attribute we want to configure
+		3,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		0,                  // stride
+		(void*)0            // array buffer offset
+	);
+	//我们可以这么想，glBindBuffer设置了一个全局的变量，之后glVertexAttribPointer读取了该全局变量并且将它存入VAO中
+	//---------------------------------------
+
+
+	//for test  改变了绑定的缓存对象之后，并不会影响到VAO里的变量    //如果当前是0绑定到GL_ARRAY_BUFFER时，调用glVertexAttribPointer会产生error
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);// OpenGL不再绑定之前的GL_ARRAY_BUFFER类型缓存
+
+	// Draw the triangle !
+	glDrawArrays(GL_TRIANGLES, 0, 3); // 3 indices starting at 0 -> 1 triangle
+
+	glDisableVertexAttribArray(vertexPosition_modelspaceID);//0
+
+	// Swap buffers
+	glfwSwapBuffers(window);
+	glfwPollEvents();
+
+} // Check if the ESC key was pressed or the window was closed
+while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
+	   glfwWindowShouldClose(window) == 0 );
+
+// Cleanup VBO
+glDeleteBuffers(1, &vertexbuffer);
+glDeleteProgram(programID);

@@ -1,0 +1,14 @@
+eg:glUniformMatrix4fv()
+函数名后的倒数第一或者第二个字母代表了数据类型。后缀中可能还包括数字，这些数字代表需要的数据类型的数量。v后缀说明函数需要传递指针类型
+
+
+b GLbyte
+s GLshort
+i GLint
+f GLfloat
+ub GLubyte
+us GLushort
+ui GLuint
+
+－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－－
+只具有一个参数（GL_ENUM）而且不具有函数尾数据类型代号的函数有： glEnable(GL_COLOR_ARRAY);

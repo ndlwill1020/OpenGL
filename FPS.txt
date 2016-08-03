@@ -1,0 +1,17 @@
+每秒传输帧数Frames Per Second
+
+double lastTime = glfwGetTime();
+int nbFrames = 0;
+
+//开始循环渲染
+do{
+	double currentTime = glfwGetTime();
+	nbFrames++;//每渲染1次，帧就加1
+	if ( currentTime - lastTime >= 1.0 ){
+		printf("%f ms/frame\n", 1000.0/double(nbFrames));//1秒等于1000毫秒 算出每帧需要的毫秒数
+
+		//reset重置
+		nbFrames = 0;
+		lastTime += 1.0;
+	}
+while()

@@ -1,0 +1,15 @@
+三角形法向:
+一个平面的法向是一个长度为1并且垂直于这个平面的向量。
+一个三角形的法向是一个长度为1并且垂直于这个三角形的向量。通过简单地将三角形两条边进行叉乘计算（向量a和b的叉乘结果是一个同时垂直于a和b的向量），然后归一化：使长度为1。伪代码如下：
+
+triangle ( v1, v2, v3 )
+edge1 = v2-v1
+edge2 = v3-v1
+triangle.normal = cross(edge1, edge2).normalize()
+
+顶点法向:
+顶点的法向，是包含该顶点的所有三角形的法向的均值
+伪代码如下：
+vertex v1, v2, v3, ....
+triangle tr1, tr2, tr3 // all share vertex v1
+v1.normal = normalize( tr1.normal + tr2.normal + tr3.normal )
