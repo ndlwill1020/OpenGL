@@ -1,0 +1,189 @@
+https://www.opengl.org   查看文档
+纹理（就是材质）
+
+结构体:
+
+只可以使用1维数组:
+数组类型内建了一个length()函数，可以返回数组的长度
+
+修饰符:
+const 常量值必须在声明时初始化。它是只读的不可修改的
+attribute 必须是全局范围声明的
+uniform 在全局范围进行声明
+varying 必须是全局范围声明的
+in  
+out 
+inout 
+
+内置变量:
+顶点着色器内置变量：
+名称  类型  描述
+gl_Color  vec4  输入属性-表示顶点的主颜色
+gl_SecondaryColor vec4  输入属性-表示顶点的辅助颜色
+gl_Normal vec3  输入属性-表示顶点的法线值
+gl_Vertex vec4  输入属性-表示物体空间的顶点位置
+gl_MultiTexCoordn vec4  输入属性-表示顶点的第n个纹理的坐标
+gl_FogCoord float 输入属性-表示顶点的雾坐标
+gl_Position vec4  输出属性-变换后的顶点的位置，用于后面的固定的裁剪等操作。所有的顶点着色器都必须写这个值。
+gl_ClipVertex vec4  输出坐标，用于用户裁剪平面的裁剪
+gl_PointSize  float 点的大小
+gl_FrontColor vec4  正面的主颜色的varying输出
+gl_BackColor  vec4  背面主颜色的varying输出
+gl_FrontSecondaryColor  vec4  正面的辅助颜色的varying输出
+gl_BackSecondaryColor vec4  背面的辅助颜色的varying输出
+gl_TexCoord[] vec4  纹理坐标的数组varying输出
+gl_FogFragCoord float 雾坐标的varying输出
+片段着色器内置变量：
+名称  类型  描述
+gl_Color  vec4  包含主颜色的插值只读输入
+gl_SecondaryColor vec4  包含辅助颜色的插值只读输入
+gl_TexCoord[] vec4  包含纹理坐标数组的插值只读输入
+gl_FogFragCoord float 包含雾坐标的插值只读输入
+gl_FragCoord  vec4  只读输入，窗口的x,y,z和1/w
+gl_FrontFacing  bool  只读输入，如果是窗口正面图元的一部分，则这个值为true
+gl_PointCoord vec2  点精灵的二维空间坐标范围在(0.0, 0.0)到(1.0, 1.0)之间，仅用于点图元和点精灵开启的情况下。
+gl_FragData[] vec4  使用glDrawBuffers输出的数据数组。不能与gl_FragColor结合使用。
+gl_FragColor  vec4  输出的颜色用于随后的像素操作
+gl_FragDepth  float 输出的深度用于随后的像素操作，如果这个值没有被写，则使用固定功能管线的深度值代替
+
+构造函数:
+vec3 point = vec3(1.0, 1.0, 1.0);
+如果只传了一个值，则会构造成对角矩阵，其余的元素为0      mat3 m3 = mat3(1.0);
+数组的初始化   ivec2 pos2[3] = ivec2[]((3,3), (2,1), (3,1));
+
+{x,y,z,w},{r,g,b,a},{s,t,p,q} 用于顶点，颜色，纹理坐标
+
+GLSL语言也提供了for, while, do/while的循环方式。使用continue跳入下一次循环，break结束循环
+
+GLSL中的函数，必须是在全局范围定义和声明的
+
+矩阵：mat2, mat3, mat4 （按列顺序存储）
+mat3 myMat3 = mat3(1.0, 0.0, 0.0,  // 第一列
+                  0.0, 1.0, 0.0,  // 第二列
+                  0.5, 1.0, 1.0); // 第三列
+
+可用[ ]或.操作符来访问：
+mat4 myMat4 = mat4(1.0);   // Initialize diagonal to 1.0 (identity)
+vec4 col0 = myMat4[0];      // Get col0 vector out of the matrix
+float m1_1 = myMat4[1][1];  // Get element at [1][1] in matrix
+float m2_2 = myMat4[2].z;   // Get element at [2][2] in matrix
+
+vec2 a = vec2(1.0,2.0);
+vec2 b = vec2(3.0,4.0);
+vec4 c = vec4(a,b) 
+
+vec2 g = vec2(1.0,2.0);
+float h = 3.0;
+vec3 j = vec3(g,h);
+
+vec4 a = vec4(1.0,2.0,3.0,4.0);
+float posX = a.x;
+float posY = a[1];
+vec2 posXY = a.xy;
+
+glsl:
+uniform float t[2];
+c++:
+float threshold[2] = {0.5,0.25};
+loc3 = glGetUniformLocation(p,"t");
+glUniform1fv(loc3,2,threshold);
+GLSL中还可以获取数组中某个变量的地址。比如，可以获得t[1]的地址。
+loct0 = glGetUniformLocation(p,"t[1]");
+glUniform1f(loct0,threshold[1]);
+
+在矩阵中，可以通过一维的下标来获得该列的向量(OpenGL的矩阵是列主顺序的)。二维的小标来获得向量中的元素。
+mat3 myMat = mat3(1.0);
+vec3 myVec = myMat[0]; //获得第一列向量 1.0, 0.0, 0.0   float f = myMat[0][0]; // 第一列的第一个向量。
+
+
+查询Uniform存储数量
+glGetIntegerv(GL_MAX_VERTEX_UNIFORM_VECTORS 或 GL_MAX_FRAGMENT_UNIFORM_VECTORS ）//128  16
+查询Attribute存储数量
+glGetIntegerv(GL_MAX_VERTEX_ATTRIBS）   //8
+查询Varying存储数量
+glGetIntegerv（GL_MAX_VARYING_VECTORS）  //8
+eg:
+GLint maxVertexAttribs; 
+glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxVertexAttribs);
+
+
+精度限定关键词：lowp highp mediump
+指定变量精度（放在数据类型之前）：
+highp vec4 position;  
+varying lowp vec4 color;  
+mediump float specularExp;  
+指定默认精度（放在Vertex和Fragment shader源码的开始处）：
+precision highp float;  
+precision mediump int;  
+在Vertex Shader中，如果没有默认的精度，则float和int精度都为highp；在Fragment Shader中，float没有默认的精度，所以必须在Fragment Shader中为float指定一个默认精度或为每个float变量指定精度
+
+获取和设置Uniforms
+glGetUniformLocation(GLuint program,const char* name)
+glUniform***
+为矩阵uniform变量设置值的函数中的transpose必须为GL_FALSE
+
+
+eg:
+void glVertexAttribPointer(GLuint index,
+                           GLint size,     //每个属性元素个数有效值1-4（x,y,z,w）
+                           GLenum type, 	//数组中每个元素的数据类型
+                           GLboolean normalized,
+                           GLsizei stride, //如果数据连续存放，则为0或       
+                                                   //size*sizeof(type)
+                           const void *ptr)  //顶点数组指针
+
+没使用VBO＃＃＃
+1.GLfloat vVertices[] = {  0.0f,  0.5f, 0.0f,   
+                        -0.5f, -0.5f, 0.0f,  
+                         0.5f, -0.5f, 0.0f };  
+glVertexAttribPointer ( 0, 3, GL_FLOAT, GL_FALSE, 0, vVertices ); 
+2.顶点的位置(x,y,z)、法线(x,y,z)和两个纹理坐标(s,t)存储在一起
+xyz 		xyz 	st 		st
+position    normal  Tex0    Tex1
+
+#define VERTEX_POS_SIZE         3 // x, y and z  
+#define VERTEX_NORMAL_SIZE      3 // x, y and z  
+#define VERTEX_TEXCOORD0_SIZE   2 // s and t  
+#define VERTEX_TEXCOORD1_SIZE   2 // s and t  
+  
+#define VERTEX_POS_INDX         0  
+#define VERTEX_NORMAL_INDX      1  
+#define VERTEX_TEXCOORD0_INDX   2  
+#define VERTEX_TEXCOORD1_INDX   3  
+   
+#define VERTEX_POS_OFFSET       0  
+#define VERTEX_NORMAL_OFFSET    3  
+#define VERTEX_TEXCOORD0_OFFSET 6  
+#define VERTEX_TEXCOORD1_OFFSET 8  
+  
+#define VERTEX_ATTRIB_SIZE  VERTEX_POS_SIZE + \  
+                            VERTEX_NORMAL_SIZE + \  
+                            VERTEX_TEXCOORD0_SIZE + \  
+                            VERTEX_TEXCOORD1_SIZE  
+                              
+float *p = malloc(numVertices * VERTEX_ATTRIB_SIZE  
+                  * sizeof(float));  
+  
+// position is vertex attribute 0  
+glVertexAttribPointer(VERTEX_POS_INDX, VERTEX_POS_SIZE,  
+                      GL_FLOAT, GL_FALSE,  
+                      VERTEX_ATTRIB_SIZE * sizeof(float),  
+                      p+VERTEX_POS_OFFSET);  
+  
+// normal is vertex attribute 1  
+glVertexAttribPointer(VERTEX_NORMAL_INDX, VERTEX_NORMAL_SIZE,  
+                      GL_FLOAT, GL_FALSE,  
+                      VERTEX_ATTRIB_SIZE * sizeof(float),  
+                      (p + VERTEX_NORMAL_OFFSET));  
+  
+// texture coordinate 0 is vertex attribute 2  
+glVertexAttribPointer(VERTEX_TEXCOORD0_INDX, VERTEX_TEXCOORD0_SIZE,  
+                      GL_FLOAT, GL_FALSE,  
+                      VERTEX_ATTRIB_SIZE * sizeof(float),  
+                      (p + VERTEX_TEXCOORD0_OFFSET));  
+  
+// texture coordinate 1 is vertex attribute 3  
+glVertexAttribPointer(VERTEX_TEXCOORD1_INDX, VERTEX_TEXCOORD1_SIZE,  
+                      GL_FLOAT, GL_FALSE,  
+                      VERTEX_ATTRIB_SIZE * sizeof(float),  
+                      (p + VERTEX_TEXCOORD1_OFFSET));

@@ -1,3 +1,5 @@
+OpenGL的矩阵是列主顺序的
+
 齐次坐标:Homogeneous coordinates
 三维顶点视为三元组(x, y, z)。现在引入一个新的分量w，得到向量(x, y, z, w)。
 若w==1，则向量(x, y, z, 1)为空间中的点。

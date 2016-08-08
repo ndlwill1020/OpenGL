@@ -1,0 +1,22 @@
+glu的gluPerspective()函数是对OpenGL基础函数glFrustum()的封装
+
+glFrustum是建立一个平截头体的函数
+glFrustum(GLdouble left,GLdouble right,GLdouble bottom,GLdouble top,GLdouble zNear,GLdouble zFar);
+gluPerspective(GLdouble fovy,GLdouble aspect,GLdouble zNear,GLdouble zFar);
+
+//glFrustum()和gluPerspective()的相互转换
+//出于某种原因无法使用glu库，那么就使用替代方法和glFrustum()函数吧
+void MyPerspective( GLdouble fov, GLdouble aspectRatio, GLdouble zNear, GLdouble zFar )
+{
+    // 使用glu库函数，需要添加glu.h头文件
+    //gluPerspective( fov, aspectRatio, zNear, zFar );
+
+
+    // 使用OpenGL函数，但是需要添加math.h头文件
+    GLdouble rFov = fov * 3.14159265 / 180.0;
+    glFrustum( -zNear * tan( rFov / 2.0 ) * aspectRatio,
+              zNear * tan( rFov / 2.0 ) * aspectRatio,
+              -zNear * tan( rFov / 2.0 ),
+              zNear * tan( rFov / 2.0 ),
+              zNear, zFar );
+}
