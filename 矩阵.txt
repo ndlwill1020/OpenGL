@@ -1,4 +1,19 @@
 OpenGL的矩阵是列主顺序的
+矩阵的数据是存贮在一维数组中，数据上传到openGL处理的时候，会把一维数据的每一行当做列来处理
+eg:
+4*4的矩阵在数组中的排列
+matrix44 = {  
+   m0,   m1,   m2,   m3,  
+   m4,   m5,   m6,   m7,  
+   m8,   m9,   m10,  m11,  
+   m12,  m13,  m14,  m15,  
+}  
+当被传输到openGL会当做下面这样的矩阵来处理
+m0 m4 m8 m12
+m1 m5 m9 m13
+m2 m6 m10 m14
+m3 m7 m11 m15
+m0, m1, m2 表示了x轴， m4, m5, m6 表示了y轴， m8, m9, m10 表示了z轴， 而m12, m13, m14表示了平移量。而最后一行的，m3, m7, m11, m15是齐次坐标。唯有m15等于1是为了，在做矩阵计算的时候，平移量影响到平移量本身，而不会影响到xyz轴的数值
 
 齐次坐标:Homogeneous coordinates
 三维顶点视为三元组(x, y, z)。现在引入一个新的分量w，得到向量(x, y, z, w)。
@@ -21,6 +36,7 @@ vec4 myVector;
 vec4 transformedVector = myMatrix * myVector; 
 
 
+所有的旋转，平移，缩放，都是在单位矩阵的基础上进行的
 -------------------------------------------平移矩阵:
 1 0 0 X
 0 1 0 Y
@@ -69,6 +85,31 @@ x 0 0 0
 glm::mat4 myScalingMatrix = glm::scale(2,2,2);
 
 -------------------------------------------旋转矩阵:
+单位矩阵在Z轴上旋转a弧度后的一个矩阵为：
+{  
+    cosa,    sina, 0.0f, 0.0f,  
+    -sina,   cosa, 0.0f, 0.0f,  
+    0.0f,    0.0f, 1.0f, 0.0f,  
+    0.0f,    0.0f, 0.0f, 1.0f,  
+};  
+
+同理单位矩阵在X轴上旋转a弧度后的矩阵：
+{  
+    1.0f,    0.0f, 0.0f, 0.0f,  
+    0.0f,    cosa, sina, 0.0f,  
+    0.0f,   -sina, cosa, 0.0f,  
+    0.0f,    0.0f, 0.0f, 1.0f,  
+};  
+
+同理单位矩阵在Y轴上旋转a弧度后的矩阵：
+{  
+       cosa, 0.0f,   -sina,  0.0f,  
+       0.0f, 1.0f,    0.0f,  0.0f,  
+       sina, 0.0f,    ccosa, 0.0f,  
+       0.0f, 0.0f,    0.0f,  1.0f,  
+}  
+
+
 用C++表示：
 // Use #include <glm/gtc/matrix_transform.hpp> and #include <glm/gtx/transform.hpp>
 glm::vec3 myRotationAxis( ??, ??, ??);
